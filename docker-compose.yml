@@ -1,0 +1,71 @@
+version: '3.2'
+services: 
+  mysql: 
+    build: ./mysql/
+    ports:
+      - "3306:3306"
+    volumes:
+      - type: bind
+        source: ./work/conf/mysql
+        target: /etc/mysql
+      - ./work/data/mysql:/var/lib/mysql
+      - type: bind
+        source: ./work/logs/mysql
+        target: /var/log/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: DawnAPI
+      MYSQL_USER: xsp
+      MYSQL_PASSWORD: 04221021
+    restart: always
+    command: "--character-set-server=utf8"
+    networks: 
+      - frontend
+  nginx:
+    build: ./nginx/
+    depends_on:
+      - php
+    ports:
+      - "80:80"
+    volumes:
+      - ./work/conf/nginx:/etc/nginx
+      - type: bind
+        source: d:/app
+        target: /app
+      - type: bind
+        source: ./work/logs/nginx
+        target: /var/log/nginx
+
+    restart: always
+    command: nginx -g 'daemon off;'
+    networks:
+        - frontend
+
+  php:
+    build: ./php/
+    ports:
+      - "9000:9000"
+      - "9005:9005"
+    volumes:
+      - ./work/conf/php/etc:/usr/local/etc
+      - ./work/logs/php-fpm:/usr/local/etc/log/php-fpm
+      - d:/app:/app
+    networks: 
+      - frontend
+    restart: always
+    command: php-fpm
+
+  redis:
+    build: ./redis/
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./work/data/redis:/data
+      - ./work/conf/redis:/usr/local/etc/redis/
+    restart: always 
+    networks:
+      - frontend
+networks:
+  frontend:
+
+    
